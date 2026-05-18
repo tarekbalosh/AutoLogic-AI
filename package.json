@@ -13,7 +13,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "turbo run db:generate",
-    "db:push": "turbo run db:push"
+    "db:push": "turbo run db:push",
+    "postinstall": "prisma generate --schema=packages/database/prisma/schema.prisma"
   },
   "lint-staged": {
     "*.{ts,tsx,js}": "eslint --fix",
