@@ -129,6 +129,32 @@ export class KnowledgeService {
     }
     */
 
+  }
+
+  async addManualFaq(organizationId: string, question: string, answer: string) {
+    if (!this.prisma.isAvailable) {
+      return {
+        id: uuidv4(),
+        title: `FAQ: ${question}`,
+        content: answer,
+        type: 'MANUAL_FAQ' as any,
+        status: 'COMPLETED' as any,
+        sizeBytes: Buffer.byteLength(answer),
+        createdAt: new Date(),
+      };
+    }
+
+    const document = await this.prisma.knowledgeDocument.create({
+      data: {
+        title: `FAQ: ${question}`,
+        content: answer,
+        type: 'MANUAL_FAQ',
+        status: 'COMPLETED',
+        sizeBytes: Buffer.byteLength(answer),
+        organizationId,
+      },
+    });
+
     return document;
   }
 
