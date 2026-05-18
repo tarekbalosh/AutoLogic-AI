@@ -1,0 +1,62 @@
+{
+  "Common": {
+    "welcome": "مرحباً",
+    "dashboard": "لوحة القيادة",
+    "logout": "تسجيل الخروج",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "loading": "جاري التحميل..."
+  },
+  "Auth": {
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "أدخل بياناتك للوصول إلى لوحة القيادة",
+      "emailLabel": "البريد الإلكتروني",
+      "passwordLabel": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "createOne": "أنشئ حساباً الآن"
+    },
+    "register": {
+      "title": "أنشئ حسابك",
+      "subtitle": "انضم إلى أكثر من 1,000 شركة تقدم دعماً استثنائياً",
+      "nameLabel": "الاسم الكامل",
+      "companyLabel": "اسم الشركة",
+      "submit": "البدء",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول"
+    }
+  },
+  "Dashboard": {
+    "nav": {
+      "overview": "نظرة عامة",
+      "analytics": "التحليلات",
+      "conversations": "المحادثات",
+      "knowledge": "قاعدة المعرفة",
+      "team": "الفريق",
+      "settings": "الإعدادات"
+    },
+    "overview": {
+      "greeting": "مرحباً بعودتك، {name}",
+      "activeTickets": "التذاكر النشطة",
+      "aiResolution": "معدل الحل بالذكاء الاصطناعي",
+      "avgResponse": "متوسط وقت الرد"
+    }
+  },
+  "Chat": {
+    "widget": {
+      "title": "مساعد الذكاء الاصطناعي",
+      "placeholder": "اكتب رسالتك هنا...",
+      "talkToHuman": "التحدث مع إنسان",
+      "connecting": "جاري الاتصال...",
+      "online": "متصل"
+    }
+  },
+  "Settings": {
+    "whatsapp": {
+      "title": "تكامل واتساب",
+      "description": "اربط حساب واتساب للأعمال لنشر الذكاء الاصطناعي.",
+      "connect": "تحقق واتصل"
+    }
+  }
+}

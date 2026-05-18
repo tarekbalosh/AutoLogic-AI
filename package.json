@@ -1,0 +1,30 @@
+{
+  "name": "ai-support-hub",
+  "private": true,
+  "packageManager": "npm@10.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "fdev": "turbo run dev --filter=web",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": "eslint --fix",
+    "*.{ts,tsx,js,css,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.21.0",
+    "turbo": "latest",
+    "typescript": "^5.0.0"
+  }
+}

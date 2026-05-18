@@ -1,0 +1,274 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+/// --- Tenant Management ---
+/// Every core entity belongs to an Organization (Tenant).
+model Organization {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  logoUrl       String?
+  
+  // WhatsApp Integration
+  waPhoneNumberId String?
+  waAccessToken   String? // In a real app, encrypt this before storing
+  waVerifyToken   String?
+  
+  // Billing & Tiering
+  whatsappId            String?
+  whatsappAccessToken   String?
+  
+  // Billing
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  stripePriceId         String?
+
+  // AI Configuration
+  openaiApiKey          String? // Encrypted in production
+  groqApiKey            String? // Encrypted in production
+  aiPersonality         String? @db.Text
+  aiGuardrails          String? @db.Text
+  aiLanguage            String? @default("Arabic")
+
+  subscription  Subscription?
+  
+  // Relations
+  users         User[]
+  conversations Conversation[]
+  knowledge     KnowledgeDocument[]
+  auditLogs     AuditLog[]
+  analytics     AnalyticsDaily[]
+  sessions      Session[]
+  
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime? // Soft Delete Support
+}
+
+/// --- User & Role-Based Access Control (RBAC) ---
+enum Role {
+  SUPER_ADMIN
+  ORG_ADMIN
+  AGENT
+  CUSTOMER
+}
+
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  phone          String?      @unique
+  password       String
+  name           String?
+  role           Role         @default(AGENT)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  conversations  Conversation[]
+  assignedConvs  Conversation[] @relation("AgentConversations")
+  messages       Message[]
+  refreshTokens  RefreshToken[]
+  sessions       Session[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+}
+
+/// --- AI Knowledge Base (RAG System) ---
+/// Stores documents that the AI uses to answer questions.
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  EXCEL
+  URL
+  MANUAL_FAQ
+}
+
+model KnowledgeDocument {
+  id             String       @id @default(cuid())
+  title          String
+  content        String?      @db.Text
+  sourceUrl      String?
+  
+  type           DocumentType @default(MANUAL_FAQ)
+  status         DocumentStatus @default(PENDING)
+  sizeBytes      Int          @default(0)
+  error          String?      @db.Text
+
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  embeddings     KnowledgeEmbedding[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+}
+
+/// Stores vector representations of knowledge chunks.
+model KnowledgeEmbedding {
+  id          String            @id @default(cuid())
+  documentId  String
+  document    KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Vector representation (1536 dims for OpenAI text-embedding-3-small)
+  vector      Unsupported("vector(1536)")? 
+  
+  createdAt   DateTime          @default(now())
+}
+
+/// --- Conversations & Ticketing ---
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+model Conversation {
+  id             String       @id @default(cuid())
+  subject        String?
+  status         TicketStatus @default(OPEN)
+  priority       Int          @default(1)
+  
+  customerId     String?
+  customer       User?        @relation(fields: [customerId], references: [id])
+  
+  agentId        String?
+  agent          User?        @relation("AgentConversations", fields: [agentId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  messages       Message[]
+  
+  csatScore      Int?         // 1-5 scale
+  csatComment    String?      @db.Text
+  resolvedAt     DateTime?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId, status])
+  @@index([customerId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  content        String       @db.Text
+  
+  senderId       String?
+  sender         User?        @relation(fields: [senderId], references: [id])
+  
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  isAi           Boolean      @default(false)
+  metadata       Json?        // Tokens, Model, Confidence
+  
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+/// --- Subscription & Billing ---
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model Subscription {
+  id             String       @id @default(cuid())
+  plan           Plan         @default(FREE)
+  stripeId       String?      @unique
+  
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  startDate      DateTime     @default(now())
+  endDate        DateTime?
+  status         String       @default("ACTIVE")
+}
+
+/// --- System Integrity & Analytics ---
+model AuditLog {
+  id             String       @id @default(cuid())
+  action         String       // USER_LOGIN, DOC_DELETE
+  entityType     String       
+  entityId       String
+  metadata       Json?
+  
+  actorId        String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+model AnalyticsDaily {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  date           DateTime @db.Date
+  
+  totalMessages  Int      @default(0)
+  aiResolved     Int      @default(0)
+  avgResponseTime Float   @default(0)
+  
+  @@unique([organizationId, date])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device    String?  // Fingerprint or User-Agent
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Session {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  ipAddress      String?
+  userAgent      String?
+  lastActive     DateTime     @default(now())
+  
+  createdAt      DateTime     @default(now())
+
+  @@index([userId])
+  @@index([organizationId])
+}

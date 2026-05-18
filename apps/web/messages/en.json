@@ -1,0 +1,62 @@
+{
+  "Common": {
+    "welcome": "Welcome",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
+  "Auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Enter your credentials to access your dashboard",
+      "emailLabel": "Email Address",
+      "passwordLabel": "Password",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one now"
+    },
+    "register": {
+      "title": "Create Your Account",
+      "subtitle": "Join 1,000+ companies delivering elite support",
+      "nameLabel": "Full Name",
+      "companyLabel": "Company Name",
+      "submit": "Get Started",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In"
+    }
+  },
+  "Dashboard": {
+    "nav": {
+      "overview": "Overview",
+      "analytics": "Analytics",
+      "conversations": "Conversations",
+      "knowledge": "Knowledge Base",
+      "team": "Team",
+      "settings": "Settings"
+    },
+    "overview": {
+      "greeting": "Welcome back, {name}",
+      "activeTickets": "Active Tickets",
+      "aiResolution": "AI Resolution Rate",
+      "avgResponse": "Avg Response Time"
+    }
+  },
+  "Chat": {
+    "widget": {
+      "title": "Support AI",
+      "placeholder": "Type your message...",
+      "talkToHuman": "Talk to a human",
+      "connecting": "Connecting...",
+      "online": "Online"
+    }
+  },
+  "Settings": {
+    "whatsapp": {
+      "title": "WhatsApp Integration",
+      "description": "Connect your WhatsApp Business API to deploy AI.",
+      "connect": "Verify & Connect"
+    }
+  }
+}
