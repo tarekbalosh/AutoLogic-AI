@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
@@ -13,12 +11,7 @@ let cachedServer: any;
 
 async function bootstrapServer() {
   if (!cachedServer) {
-    const expressApp = express();
-    const app = await NestFactory.create(
-      AppModule,
-      new ExpressAdapter(expressApp),
-      { rawBody: true }
-    );
+    const app = await NestFactory.create(AppModule, { rawBody: true });
     
     app.enableCors({
       origin: '*',
@@ -27,7 +20,7 @@ async function bootstrapServer() {
     });
 
     await app.init();
-    cachedServer = expressApp;
+    cachedServer = app.getHttpAdapter().getInstance();
   }
   return cachedServer;
 }
