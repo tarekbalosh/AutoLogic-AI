@@ -13,8 +13,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "turbo run db:generate",
-    "db:push": "turbo run db:push",
-    "prepare": "husky install || true"
+    "db:push": "turbo run db:push"
   },
   "lint-staged": {
     "*.{ts,tsx,js}": "eslint --fix",
