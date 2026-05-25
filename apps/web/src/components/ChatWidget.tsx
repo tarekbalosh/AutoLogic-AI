@@ -59,16 +59,8 @@ export function ChatWidget({ organizationId, conversationId }: WidgetProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  let typingTimeout: NodeJS.Timeout;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
-    
-    // Typing indicator with debounce
-    emit(ChatEvent.TYPING_START, conversationId);
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      emit(ChatEvent.TYPING_STOP, conversationId);
-    }, 1500);
   };
 
   const handleSend = async (e: React.FormEvent) => {
@@ -81,16 +73,65 @@ export function ChatWidget({ organizationId, conversationId }: WidgetProps) {
       fileUrl = URL.createObjectURL(file); // Mock
     }
 
-    const payload: SendMessageDto = {
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
       conversationId,
       content: inputValue,
+      senderId: 'me',
+      isAi: false,
+      status: 'SENT',
+      createdAt: new Date(),
       fileUrl,
     };
 
-    emit(ChatEvent.SEND_MESSAGE, payload);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setFile(null);
-    emit(ChatEvent.TYPING_STOP, conversationId);
+    setIsTyping(true);
+
+    try {
+      // Format history
+      const history = messages
+        .filter(m => m.id !== 'welcome-msg')
+        .map(m => ({
+          role: m.isAi ? 'assistant' : 'user',
+          content: m.content
+        }));
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: userMessage.content, history })
+      });
+
+      const data = await response.json();
+      
+      const aiMessage: ChatMessage = {
+        id: Date.now().toString() + '-ai',
+        conversationId,
+        content: data.response || "I apologize, but I am currently experiencing technical difficulties.",
+        senderId: 'ai',
+        isAi: true,
+        status: 'SENT',
+        createdAt: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString() + '-err',
+        conversationId,
+        content: "I apologize, but I am currently experiencing technical difficulties. Let me connect you with a human support agent.",
+        senderId: 'ai',
+        isAi: true,
+        status: 'SENT',
+        createdAt: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const requestHandoff = () => {
